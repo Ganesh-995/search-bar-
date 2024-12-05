@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #results p { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Search</h1>
+    <input type="text" id="searchdata" placeholder="Type to search..." autocomplete="off" />
+
+    <div id="results"></div>
+
+    <script>
+        const searchInput = document.getElementById('searchdata');
+        const resultsDiv = document.getElementById('results');
+        let debounceTimer;
+
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer); // Clear the timer if user keeps typing
+            debounceTimer = setTimeout(async () => {
+                const query = searchInput.value;
+
+                if (query.trim() === '') {
+                    resultsDiv.innerHTML = ''; // Clear results if input is empty
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ searchdata: query })
+                    });
+
+                    const results = await response.json();
+                    resultsDiv.innerHTML = results.length
+                        ? results.map(item => `<p>${item.name}</p>`).join('')
+                        : '<p>No results found</p>';
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }, 300); // 300ms debounce
+        });
+    </script>
+</body>
+</html>
